@@ -3,6 +3,8 @@ package com.example.recipeapp.utils;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,7 +14,9 @@ public class Recipe implements Parcelable {
     private String name;
     private String servings;
     private String image;
+    @SerializedName("ingredients")
     private List<Ingredient> ingredientList;
+    @SerializedName("steps")
     private List<Step> stepList;
 
     public static final Creator<Recipe> CREATOR = new Creator<Recipe>() {

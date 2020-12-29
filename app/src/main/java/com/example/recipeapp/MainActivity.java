@@ -58,6 +58,32 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
                 recipeList = response.body();
+
+                RecyclerView recipeview = findViewById(R.id.recipe_recycler_view);
+                GridLayoutManager gridLayoutManager = new GridLayoutManager(getBaseContext(),ResponsiveLayout.calculateNoOfColumns(getBaseContext()) );
+                RecipeAdapter recipeAdapter = new RecipeAdapter(getBaseContext(), recipeList, new RecipeAdapter.OnRecipeClickListener() {
+                    @Override
+                    public void onRecipeClickListener(Recipe recipe) {
+                        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getApplicationContext());
+                        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(getBaseContext(), RecipeWidgetProvider.class));
+                        com.example.recipeapp.MainActivity.recipe= recipe;
+                        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds,R.id.appwidget_list);
+
+                        for (int appWidgetId : appWidgetIds) {
+                            RecipeWidgetProvider.updateAppWidget(getBaseContext(), appWidgetManager, appWidgetId);
+                        }
+
+                        Intent intent = new Intent(getBaseContext(),RecipeDetails.class);
+
+                        intent.putExtra("recipe", recipe);
+                        startActivity(intent);
+
+                    }
+                }) ;
+
+                recipeview.setAdapter(recipeAdapter);
+                recipeview.setLayoutManager(gridLayoutManager);
+
             }
 
             @Override
@@ -69,11 +95,11 @@ public class MainActivity extends AppCompatActivity {
 
       //  GetRecipeData getRecipeData = new GetRecipeData();
      //   getRecipeData.execute(JSON_URL);
-
-
-
     }
 
+
+
+/*
 
     public class GetRecipeData extends AsyncTask<String, Void, Void> {
 
@@ -168,6 +194,6 @@ public class MainActivity extends AppCompatActivity {
             recipeview.setLayoutManager(gridLayoutManager);
         }
     }
-
+*/
     
 }
