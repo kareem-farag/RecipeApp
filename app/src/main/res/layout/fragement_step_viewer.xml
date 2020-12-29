@@ -14,10 +14,12 @@
         android:padding="10dp" />
 
 
-    <com.google.android.exoplayer2.ui.PlayerView
+    <com.google.android.exoplayer2.ui.PlayerView xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/player"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        app:fastforward_increment="1000"
+        app:rewind_increment="1000" />
 
 </LinearLayout>

@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,17 +14,9 @@ import androidx.fragment.app.Fragment;
 
 import com.example.recipeapp.R;
 import com.example.recipeapp.utils.Step;
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.LoadControl;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.SimpleExoPlayer;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
-import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
-import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
 import java.util.List;
@@ -45,14 +36,15 @@ public class StepViewerFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable("step", step);
+        outState.putLong("playerPosition", simpleExoPlayer.getCurrentPosition());
+        outState.putBoolean("startAutoPlay", simpleExoPlayer.getPlayWhenReady());
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragement_step_viewer, container, false);
-        TrackSelector trackSelector = new DefaultTrackSelector();
-        LoadControl loadControl = new DefaultLoadControl();
+
         if (savedInstanceState != null) {
             step = savedInstanceState.getParcelable("step");
         }
@@ -62,37 +54,66 @@ public class StepViewerFragment extends Fragment {
         stepDetailsTv.setText(step.getDescription());
 
         if (simpleExoPlayer == null) {
-            simpleExoPlayer = ExoPlayerFactory.newSimpleInstance(context,trackSelector,loadControl);
 
             PlayerView playerView = rootView.findViewById(R.id.player);
+
+            simpleExoPlayer = new SimpleExoPlayer.Builder(context).build();
             playerView.setPlayer(simpleExoPlayer);
 
-
-            DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context,
-                    Util.getUserAgent(context, "Baking App"));
-            try {
-                MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory)
-                        .createMediaSource(Uri.parse(step.getVideoURL()));
-
-
-                simpleExoPlayer.prepare(videoSource);
-                simpleExoPlayer.setPlayWhenReady(true);
-
-            } catch (Exception e) {
-                Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show();
+            MediaItem mediaItem = MediaItem.fromUri(Uri.parse(step.getVideoURL()));
+            simpleExoPlayer.setMediaItem(mediaItem);
+            simpleExoPlayer.setPlayWhenReady(true);
+            if (savedInstanceState != null) {
+                simpleExoPlayer.seekTo(savedInstanceState.getLong("playerPosition"));
+                simpleExoPlayer.setPlayWhenReady(savedInstanceState.getBoolean("startAutoPlay"));
             }
+
+            simpleExoPlayer.prepare();
+            simpleExoPlayer.play();
+
         }
         return rootView;
     }
+
+
     private void releasePlayer() {
         simpleExoPlayer.stop();
         simpleExoPlayer.release();
         simpleExoPlayer = null;
     }
 
-    public void onDetach() {
-        super.onDetach();
-        releasePlayer();
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (Util.SDK_INT > 23) {
+            // initialize player
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if ((Util.SDK_INT <= 23)) {
+
+            // initialize player
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (Util.SDK_INT <= 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (Util.SDK_INT > 23) {
+            releasePlayer();
+        }
     }
 
     @Override

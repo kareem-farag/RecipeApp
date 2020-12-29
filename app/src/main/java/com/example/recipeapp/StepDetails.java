@@ -23,55 +23,57 @@ public class StepDetails extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_step_details);
+        if (savedInstanceState == null) {
 
+            final StepViewerFragment stepViewerFragment = new StepViewerFragment();
 
-        final StepViewerFragment stepViewerFragment = new StepViewerFragment();
+            if (getIntent().getExtras() != null) {
+                step = getIntent().getExtras().getParcelable("step");
+                stepList = getIntent().getExtras().getParcelableArrayList("stepList");
 
-        if (getIntent().getExtras() != null) {
-            step = getIntent().getExtras().getParcelable("step");
-            stepList = getIntent().getExtras().getParcelableArrayList("stepList");
+            }
 
-        }
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        stepViewerFragment.setStep(step);
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            stepViewerFragment.setStep(step);
 
-        fragmentManager.beginTransaction().add(R.id.step_detail_video, stepViewerFragment).commit();
+            fragmentManager.beginTransaction().add(R.id.step_detail_video, stepViewerFragment).commit();
 
-        if (findViewById(R.id.next_step_button) != null) {
-            nextButton = findViewById(R.id.next_step_button);
-            previousButton = findViewById(R.id.previous_step_button);
-            nextButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    StepViewerFragment newStepViewerFragment = new StepViewerFragment();
-                    step = step.getNextStep(step, stepList);
-                    if (step != null) {
-                        newStepViewerFragment.setStep(step);
-                        fragmentManager.beginTransaction().replace(R.id.step_detail_video, newStepViewerFragment).commit();
-                    } else {
-                        Toast.makeText(getBaseContext(), "Sorry, It's the last step", Toast.LENGTH_LONG);
+            if (findViewById(R.id.next_step_button) != null) {
+                nextButton = findViewById(R.id.next_step_button);
+                previousButton = findViewById(R.id.previous_step_button);
+                nextButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        StepViewerFragment newStepViewerFragment = new StepViewerFragment();
+                        step = step.getNextStep(step, stepList);
+                        if (step != null) {
+                            newStepViewerFragment.setStep(step);
+                            fragmentManager.beginTransaction().replace(R.id.step_detail_video, newStepViewerFragment).commit();
+                        } else {
+                            Toast.makeText(getBaseContext(), "Sorry, It's the last step", Toast.LENGTH_LONG);
+                        }
+                        newStepViewerFragment = null;
                     }
-                    newStepViewerFragment = null;
-                }
-            });
+                });
 
-            previousButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    StepViewerFragment newStepViewerFragment = new StepViewerFragment();
-                    step = step.getPreviousStep(step, stepList);
-                    if (step != null) {
+                previousButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        StepViewerFragment newStepViewerFragment = new StepViewerFragment();
+                        step = step.getPreviousStep(step, stepList);
+                        if (step != null) {
 
-                        newStepViewerFragment.setStep(step);
-                        fragmentManager.beginTransaction().replace(R.id.step_detail_video, newStepViewerFragment).commit();
-                    } else {
-                        Toast.makeText(getBaseContext(), "Sorry, It's the first step", Toast.LENGTH_LONG);
+                            newStepViewerFragment.setStep(step);
+                            fragmentManager.beginTransaction().replace(R.id.step_detail_video, newStepViewerFragment).commit();
+                        } else {
+                            Toast.makeText(getBaseContext(), "Sorry, It's the first step", Toast.LENGTH_LONG);
+                        }
+                        newStepViewerFragment = null;
+
+
                     }
-                    newStepViewerFragment = null;
-
-
-                }
-            });
+                });
+            }
         }
 
     }
