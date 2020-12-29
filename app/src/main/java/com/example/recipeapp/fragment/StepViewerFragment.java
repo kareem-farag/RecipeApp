@@ -26,7 +26,10 @@ public class StepViewerFragment extends Fragment {
     private Context context;
     private List<Step> stepList;
     SimpleExoPlayer simpleExoPlayer;
+    private PlayerView playerView;
     private TextView stepDetailsTv;
+    private Long playerPosition = null;
+    private Boolean startAutoPlay = null;
 
     public StepViewerFragment() {
 
@@ -34,10 +37,13 @@ public class StepViewerFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
         outState.putParcelable("step", step);
-        outState.putLong("playerPosition", simpleExoPlayer.getCurrentPosition());
-        outState.putBoolean("startAutoPlay", simpleExoPlayer.getPlayWhenReady());
+        outState.putLong("playerPosition", playerPosition);
+        outState.putBoolean("startAutoPlay", startAutoPlay);
+
+
+        super.onSaveInstanceState(outState);
+
     }
 
     @Nullable
@@ -52,29 +58,41 @@ public class StepViewerFragment extends Fragment {
 
         stepDetailsTv = rootView.findViewById(R.id.step_viewer_details_tv);
         stepDetailsTv.setText(step.getDescription());
+        playerView = rootView.findViewById(R.id.player);
 
         if (simpleExoPlayer == null) {
-
-            PlayerView playerView = rootView.findViewById(R.id.player);
-
-            simpleExoPlayer = new SimpleExoPlayer.Builder(context).build();
-            playerView.setPlayer(simpleExoPlayer);
-
-            MediaItem mediaItem = MediaItem.fromUri(Uri.parse(step.getVideoURL()));
-            simpleExoPlayer.setMediaItem(mediaItem);
-            simpleExoPlayer.setPlayWhenReady(true);
             if (savedInstanceState != null) {
-                simpleExoPlayer.seekTo(savedInstanceState.getLong("playerPosition"));
-                simpleExoPlayer.setPlayWhenReady(savedInstanceState.getBoolean("startAutoPlay"));
-            }
 
-            simpleExoPlayer.prepare();
-            simpleExoPlayer.play();
+
+                playerPosition = savedInstanceState.getLong("playerPosition");
+                startAutoPlay = savedInstanceState.getBoolean("startAutoPlay");
+            }
+            initiatePlayer();
+
 
         }
         return rootView;
     }
 
+    private void initiatePlayer() {
+        playerView.setPlayer(simpleExoPlayer);
+        simpleExoPlayer = new SimpleExoPlayer.Builder(context).build();
+        MediaItem mediaItem = MediaItem.fromUri(Uri.parse(step.getVideoURL()));
+        if (playerPosition != null) {
+            simpleExoPlayer.seekTo(playerPosition);
+        }
+        if (startAutoPlay != null) {
+            simpleExoPlayer.setPlayWhenReady(startAutoPlay);
+        }
+
+
+        simpleExoPlayer.setMediaItem(mediaItem);
+        simpleExoPlayer.setPlayWhenReady(true);
+
+
+        simpleExoPlayer.prepare();
+        simpleExoPlayer.play();
+    }
 
     private void releasePlayer() {
         simpleExoPlayer.stop();
@@ -87,7 +105,7 @@ public class StepViewerFragment extends Fragment {
     public void onStart() {
         super.onStart();
         if (Util.SDK_INT > 23) {
-            // initialize player
+            initiatePlayer();
         }
     }
 
@@ -96,13 +114,16 @@ public class StepViewerFragment extends Fragment {
         super.onResume();
         if ((Util.SDK_INT <= 23)) {
 
-            // initialize player
+            initiatePlayer();
         }
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        playerPosition = simpleExoPlayer.getCurrentPosition();
+        startAutoPlay = simpleExoPlayer.getPlayWhenReady();
+
         if (Util.SDK_INT <= 23) {
             releasePlayer();
         }
@@ -110,6 +131,8 @@ public class StepViewerFragment extends Fragment {
 
     @Override
     public void onStop() {
+        playerPosition = simpleExoPlayer.getCurrentPosition();
+        startAutoPlay = simpleExoPlayer.getPlayWhenReady();
         super.onStop();
         if (Util.SDK_INT > 23) {
             releasePlayer();
