@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.recipeapp.recyclers.RecipeAdapter;
 import com.example.recipeapp.utils.Ingredient;
+import com.example.recipeapp.utils.JsonRecipePlaceHolder;
 import com.example.recipeapp.utils.Recipe;
 import com.example.recipeapp.utils.Step;
 
@@ -29,8 +30,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class MainActivity extends AppCompatActivity {
-    public String JSON_URL = "https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/baking.json";
+    public String JSON_URL = "https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/";
     private List<Recipe> recipeList = new ArrayList<Recipe>();
 
     public static Recipe recipe = null;
@@ -40,8 +47,28 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        GetRecipeData getRecipeData = new GetRecipeData();
-        getRecipeData.execute(JSON_URL);
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(JSON_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        JsonRecipePlaceHolder jsonRecipePlaceHolder = retrofit.create(JsonRecipePlaceHolder.class);
+
+        Call<List<Recipe>>call = jsonRecipePlaceHolder.getRecipeList();
+        call.enqueue(new Callback<List<Recipe>>() {
+            @Override
+            public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
+                recipeList = response.body();
+            }
+
+            @Override
+            public void onFailure(Call<List<Recipe>> call, Throwable t) {
+
+            }
+        });
+
+
+      //  GetRecipeData getRecipeData = new GetRecipeData();
+     //   getRecipeData.execute(JSON_URL);
 
 
 
